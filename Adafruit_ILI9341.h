@@ -1,12 +1,3 @@
-/*
- * lib_ili9341.h
- *
- *  Created on: 08 Sep 2014
- *      Author: rambo
- */
-
-#ifndef LIB_ILI9341_H_
-#define LIB_ILI9341_H_
 /***************************************************
   This is our library for the Adafruit  ILI9341 Breakout and Shield
   ----> http://www.adafruit.com/products/1651
@@ -22,13 +13,16 @@
   MIT license, all text above must be included in any redistribution
  ****************************************************/
 
-#if ARDUINO >= 100
- #include "Arduino.h"
- #include "Print.h"
-#else
- #include "WProgram.h"
-#endif
-#include <Adafruit_GFX.h>
+#ifndef _ADAFRUIT_ILI9341H_
+#define _ADAFRUIT_ILI9341H_
+
+//#if ARDUINO >= 100
+// #include "Arduino.h"
+// #include "Print.h"
+//#else
+// #include "WProgram.h"
+//#endif
+#include "Adafruit_GFX.h"
 #include <avr/pgmspace.h>
 
 
@@ -99,7 +93,7 @@
 #define	ILI9341_GREEN   0x07E0
 #define ILI9341_CYAN    0x07FF
 #define ILI9341_MAGENTA 0xF81F
-#define ILI9341_YELLOW  0xFFE0
+#define ILI9341_YELLOW  0xFFE0  
 #define ILI9341_WHITE   0xFFFF
 
 
@@ -131,7 +125,7 @@ class Adafruit_ILI9341 : public Adafruit_GFX {
   uint16_t readcommand16(uint8_t);
   uint32_t readcommand32(uint8_t);
   void     dummyclock(void);
-  */
+  */  
 
   void     spiwrite(uint8_t),
     writecommand(uint8_t c),
@@ -145,18 +139,11 @@ class Adafruit_ILI9341 : public Adafruit_GFX {
 
 
   boolean  hwSPI;
-#if defined (__AVR__) || defined(TEENSYDUINO)
   uint8_t mySPCR;
   volatile uint8_t *mosiport, *clkport, *dcport, *rsport, *csport;
   int8_t  _cs, _dc, _rst, _mosi, _miso, _sclk;
   uint8_t  mosipinmask, clkpinmask, cspinmask, dcpinmask;
-#elif defined (__arm__)
-    volatile RwReg *mosiport, *clkport, *dcport, *rsport, *csport;
-    uint32_t  _cs, _dc, _rst, _mosi, _miso, _sclk;
-    uint32_t  mosipinmask, clkpinmask, cspinmask, dcpinmask;
-#endif
+
 };
 
-
-
-#endif /* LIB_ILI9341_H_ */
+#endif
