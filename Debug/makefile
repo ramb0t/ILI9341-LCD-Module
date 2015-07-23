@@ -12,14 +12,29 @@ RM := rm -rf
 -include objects.mk
 
 ifneq ($(MAKECMDGOALS),clean)
+ifneq ($(strip $(C++_DEPS)),)
+-include $(C++_DEPS)
+endif
 ifneq ($(strip $(C_DEPS)),)
 -include $(C_DEPS)
 endif
 ifneq ($(strip $(ASM_DEPS)),)
 -include $(ASM_DEPS)
 endif
+ifneq ($(strip $(CC_DEPS)),)
+-include $(CC_DEPS)
+endif
+ifneq ($(strip $(CPP_DEPS)),)
+-include $(CPP_DEPS)
+endif
 ifneq ($(strip $(S_DEPS)),)
 -include $(S_DEPS)
+endif
+ifneq ($(strip $(CXX_DEPS)),)
+-include $(CXX_DEPS)
+endif
+ifneq ($(strip $(C_UPPER_DEPS)),)
+-include $(C_UPPER_DEPS)
 endif
 ifneq ($(strip $(S_UPPER_DEPS)),)
 -include $(S_UPPER_DEPS)
@@ -30,38 +45,38 @@ endif
 
 # Add inputs and outputs from these tool invocations to the build variables 
 LSS += \
-LCD Module.lss \
+ILI9341-LCD-Module.lss \
 
 SIZEDUMMY += \
 sizedummy \
 
 
 # All Target
-all: LCD\ Module.elf secondary-outputs
+all: ILI9341-LCD-Module.elf secondary-outputs
 
 # Tool invocations
-LCD\ Module.elf: $(OBJS) $(USER_OBJS)
+ILI9341-LCD-Module.elf: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
-	@echo 'Invoking: AVR C Linker'
-	avr-gcc -Wl,-Map,LCD Module.map -mmcu=atmega328p -o "LCD Module.elf" $(OBJS) $(USER_OBJS) $(LIBS)
+	@echo 'Invoking: AVR C++ Linker'
+	avr-g++ -Wl,-Map,ILI9341-LCD-Module.map,--cref -mrelax -Wl,--gc-sections -mmcu=atmega328p -o "ILI9341-LCD-Module.elf" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
-LCD\ Module.lss: LCD\ Module.elf
+ILI9341-LCD-Module.lss: ILI9341-LCD-Module.elf
 	@echo 'Invoking: AVR Create Extended Listing'
-	-avr-objdump -h -S LCD Module.elf  >"LCD Module.lss"
+	-avr-objdump -h -S ILI9341-LCD-Module.elf  >"ILI9341-LCD-Module.lss"
 	@echo 'Finished building: $@'
 	@echo ' '
 
-sizedummy: LCD\ Module.elf
+sizedummy: ILI9341-LCD-Module.elf
 	@echo 'Invoking: Print Size'
-	-avr-size --format=avr --mcu=atmega328p LCD Module.elf
+	-avr-size --format=berkeley -t ILI9341-LCD-Module.elf
 	@echo 'Finished building: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) $(OBJS)$(C_DEPS)$(ASM_DEPS)$(ELFS)$(LSS)$(S_DEPS)$(SIZEDUMMY)$(S_UPPER_DEPS) "LCD Module.elf"
+	-$(RM) $(OBJS)$(C_DEPS)$(ELFS)$(LSS)$(S_DEPS)$(CXX_DEPS)$(S_UPPER_DEPS)$(C++_DEPS)$(ASM_DEPS)$(CC_DEPS)$(CPP_DEPS)$(C_UPPER_DEPS)$(SIZEDUMMY) ILI9341-LCD-Module.elf
 	-@echo ' '
 
 secondary-outputs: $(LSS) $(SIZEDUMMY)

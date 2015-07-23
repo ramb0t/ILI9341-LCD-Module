@@ -16,9 +16,14 @@
 #include "Adafruit_ILI9341.h"
 #include <avr/pgmspace.h>
 #include <limits.h>
+#include <util/delay.h>
+#define delay(x)	_delay_ms(x)
 //#include "pins_arduino.h"
 //#include "wiring_private.h"
 #include "SPI.h"
+
+#define LCD_PORT PORTB
+#define LCD_DDR	 DDRB
 
 // Constructor when using software SPI.  All output pins are configurable.
 Adafruit_ILI9341::Adafruit_ILI9341(int8_t cs, int8_t dc, int8_t mosi,
@@ -159,16 +164,24 @@ void Adafruit_ILI9341::commandList(uint8_t *addr) {
 
 void Adafruit_ILI9341::begin(void) {
   if (_rst > 0) {
-    pinMode(_rst, OUTPUT);
-    digitalWrite(_rst, LOW);
+//    pinMode(_rst, OUTPUT);
+	set_bit(LCD_DDR, _rst);
+	clr_bit(LCD_PORT, _rst);
+//    digitalWrite(_rst, LOW);
   }
 
-  pinMode(_dc, OUTPUT);
-  pinMode(_cs, OUTPUT);
-  csport    = portOutputRegister(digitalPinToPort(_cs));
-  cspinmask = digitalPinToBitMask(_cs);
-  dcport    = portOutputRegister(digitalPinToPort(_dc));
-  dcpinmask = digitalPinToBitMask(_dc);
+  //pinMode(_dc, OUTPUT);
+  //pinMode(_cs, OUTPUT);
+  set_bit(LCD_DDR, _dc);
+  set_bit(LCD_DDR, _cs);
+  //csport    = portOutputRegister(digitalPinToPort(_cs));
+  csport = &LCD_PORT;
+  //cspinmask = digitalPinToBitMask(_cs);
+  cspinmask = (1<<_cs);
+  //dcport    = portOutputRegister(digitalPinToPort(_dc));
+  dcport = &LCD_PORT;
+  //dcpinmask = digitalPinToBitMask(_dc);
+  dcpinmask = (1<<_dc);
 
   if(hwSPI) { // Using hardware SPI
 #if defined (__AVR__)
@@ -189,24 +202,29 @@ void Adafruit_ILI9341::begin(void) {
       SPI.setDataMode(SPI_MODE0);
 #endif
   } else {
-    pinMode(_sclk, OUTPUT);
-    pinMode(_mosi, OUTPUT);
-    pinMode(_miso, INPUT);
-    clkport     = portOutputRegister(digitalPinToPort(_sclk));
-    clkpinmask  = digitalPinToBitMask(_sclk);
-    mosiport    = portOutputRegister(digitalPinToPort(_mosi));
-    mosipinmask = digitalPinToBitMask(_mosi);
-    *clkport   &= ~clkpinmask;
-    *mosiport  &= ~mosipinmask;
+	  // fix these if you want to use software spi!!
+    //pinMode(_sclk, OUTPUT);
+//	set_bit(LCD_DDR, _);
+//    pinMode(_mosi, OUTPUT);
+//    pinMode(_miso, INPUT);
+//    clkport     = portOutputRegister(digitalPinToPort(_sclk));
+//    clkpinmask  = digitalPinToBitMask(_sclk);
+//    mosiport    = portOutputRegister(digitalPinToPort(_mosi));
+//    mosipinmask = digitalPinToBitMask(_mosi);
+//    *clkport   &= ~clkpinmask;
+//    *mosiport  &= ~mosipinmask;
   }
 
   // toggle RST low to reset
   if (_rst > 0) {
-    digitalWrite(_rst, HIGH);
+    //digitalWrite(_rst, HIGH);
+    set_bit(LCD_PORT, _rst);
     delay(5);
-    digitalWrite(_rst, LOW);
+    //digitalWrite(_rst, LOW);
+    clr_bit(LCD_PORT, _rst);
     delay(20);
-    digitalWrite(_rst, HIGH);
+    //digitalWrite(_rst, HIGH);
+    set_bit(LCD_PORT, _rst);
     delay(150);
   }
 
@@ -525,7 +543,7 @@ void Adafruit_ILI9341::setRotation(uint8_t m) {
 }
 
 
-void Adafruit_ILI9341::invertDisplay(boolean i) {
+void Adafruit_ILI9341::invertDisplay(bool i) {
   if (hwSPI) spi_begin();
   writecommand(i ? ILI9341_INVON : ILI9341_INVOFF);
   if (hwSPI) spi_end();
@@ -535,70 +553,70 @@ void Adafruit_ILI9341::invertDisplay(boolean i) {
 ////////// stuff not actively being used, but kept for posterity
 
 
-uint8_t Adafruit_ILI9341::spiread(void) {
-  uint8_t r = 0;
-
-  if (hwSPI) {
-#if defined (__AVR__)
-    uint8_t backupSPCR = SPCR;
-    SPCR = mySPCR;
-    SPDR = 0x00;
-    while(!(SPSR & _BV(SPIF)));
-    r = SPDR;
-    SPCR = backupSPCR;
-#elif defined(TEENSYDUINO)
-    r = SPI.transfer(0x00);
-#elif defined (__arm__)
-    SPI.setClockDivider(11); // 8-ish MHz (full! speed!)
-    SPI.setBitOrder(MSBFIRST);
-    SPI.setDataMode(SPI_MODE0);
-    r = SPI.transfer(0x00);
-#endif
-  } else {
-
-    for (uint8_t i=0; i<8; i++) {
-      digitalWrite(_sclk, LOW);
-      digitalWrite(_sclk, HIGH);
-      r <<= 1;
-      if (digitalRead(_miso))
-	r |= 0x1;
-    }
-  }
-  //Serial.print("read: 0x"); Serial.print(r, HEX);
-  
-  return r;
-}
-
- uint8_t Adafruit_ILI9341::readdata(void) {
-   digitalWrite(_dc, HIGH);
-   digitalWrite(_cs, LOW);
-   uint8_t r = spiread();
-   digitalWrite(_cs, HIGH);
-   
-   return r;
-}
- 
-
-uint8_t Adafruit_ILI9341::readcommand8(uint8_t c, uint8_t index) {
-   if (hwSPI) spi_begin();
-   digitalWrite(_dc, LOW); // command
-   digitalWrite(_cs, LOW);
-   spiwrite(0xD9);  // woo sekret command?
-   digitalWrite(_dc, HIGH); // data
-   spiwrite(0x10 + index);
-   digitalWrite(_cs, HIGH);
-
-   digitalWrite(_dc, LOW);
-   digitalWrite(_sclk, LOW);
-   digitalWrite(_cs, LOW);
-   spiwrite(c);
- 
-   digitalWrite(_dc, HIGH);
-   uint8_t r = spiread();
-   digitalWrite(_cs, HIGH);
-   if (hwSPI) spi_end();
-   return r;
-}
+//uint8_t Adafruit_ILI9341::spiread(void) {
+//  uint8_t r = 0;
+//
+//  if (hwSPI) {
+//#if defined (__AVR__)
+//    uint8_t backupSPCR = SPCR;
+//    SPCR = mySPCR;
+//    SPDR = 0x00;
+//    while(!(SPSR & _BV(SPIF)));
+//    r = SPDR;
+//    SPCR = backupSPCR;
+//#elif defined(TEENSYDUINO)
+//    r = SPI.transfer(0x00);
+//#elif defined (__arm__)
+//    SPI.setClockDivider(11); // 8-ish MHz (full! speed!)
+//    SPI.setBitOrder(MSBFIRST);
+//    SPI.setDataMode(SPI_MODE0);
+//    r = SPI.transfer(0x00);
+//#endif
+//  } else {
+//
+//    for (uint8_t i=0; i<8; i++) {
+//      digitalWrite(_sclk, LOW);
+//      digitalWrite(_sclk, HIGH);
+//      r <<= 1;
+//      if (digitalRead(_miso))
+//	r |= 0x1;
+//    }
+//  }
+//  //Serial.print("read: 0x"); Serial.print(r, HEX);
+//
+//  return r;
+//}
+//
+// uint8_t Adafruit_ILI9341::readdata(void) {
+//   digitalWrite(_dc, HIGH);
+//   digitalWrite(_cs, LOW);
+//   uint8_t r = spiread();
+//   digitalWrite(_cs, HIGH);
+//
+//   return r;
+//}
+//
+//
+//uint8_t Adafruit_ILI9341::readcommand8(uint8_t c, uint8_t index) {
+//   if (hwSPI) spi_begin();
+//   digitalWrite(_dc, LOW); // command
+//   digitalWrite(_cs, LOW);
+//   spiwrite(0xD9);  // woo sekret command?
+//   digitalWrite(_dc, HIGH); // data
+//   spiwrite(0x10 + index);
+//   digitalWrite(_cs, HIGH);
+//
+//   digitalWrite(_dc, LOW);
+//   digitalWrite(_sclk, LOW);
+//   digitalWrite(_cs, LOW);
+//   spiwrite(c);
+//
+//   digitalWrite(_dc, HIGH);
+//   uint8_t r = spiread();
+//   digitalWrite(_cs, HIGH);
+//   if (hwSPI) spi_end();
+//   return r;
+//}
 
 
  

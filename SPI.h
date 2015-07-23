@@ -47,6 +47,9 @@
 #define clr_bit(reg,bit) reg &= ~(1<<bit)
 #define check_bit(reg,bit) (reg&(1<<bit))
 
+#define LSBFIRST 0
+#define MSBFIRST 1
+
 #define SPI_CLOCK_DIV4 0x00
 #define SPI_CLOCK_DIV16 0x01
 #define SPI_CLOCK_DIV64 0x02
@@ -67,7 +70,7 @@
 
 class SPIClass {
 public:
-  inline static byte transfer(byte _data);
+  inline static unsigned char transfer(unsigned char _data);
 
   // SPI Configuration methods
 
@@ -84,7 +87,7 @@ public:
 
 extern SPIClass SPI;
 
-byte SPIClass::transfer(byte _data) {
+unsigned char SPIClass::transfer(unsigned char _data) {
   SPDR = _data;
   while (!(SPSR & _BV(SPIF)))
     ;

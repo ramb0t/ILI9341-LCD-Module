@@ -8,9 +8,13 @@
 // #include "WProgram.h"
 //#endif
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdint.h>
+
 #define swap(a, b) { int16_t t = a; a = b; b = t; }
 
-class Adafruit_GFX : public Print {
+class Adafruit_GFX{
 
  public:
 
@@ -28,7 +32,8 @@ class Adafruit_GFX : public Print {
     drawRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color),
     fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color),
     fillScreen(uint16_t color),
-    invertDisplay(boolean i);
+    invertDisplay(bool i),
+  	write(uint8_t);
 
   // These exist only with Adafruit_GFX (no subclass overrides)
   void
@@ -54,11 +59,10 @@ class Adafruit_GFX : public Print {
     setTextColor(uint16_t c),
     setTextColor(uint16_t c, uint16_t bg),
     setTextSize(uint8_t s),
-    setTextWrap(boolean w),
+    setTextWrap(bool w),
     setRotation(uint8_t r);
 
 //#if ARDUINO >= 100
-  virtual size_t write(uint8_t);
 //#else
 //  virtual void   write(uint8_t);
 //#endif
@@ -80,7 +84,7 @@ class Adafruit_GFX : public Print {
   uint8_t
     textsize,
     rotation;
-  boolean
+  bool
     wrap; // If set, 'wrap' text at right edge of display
 };
 

@@ -26,7 +26,7 @@ void SPIClass::begin() {
   // When the SS pin is set as OUTPUT, it can be used as
   // a general purpose output port (it doesn't influence
   // SPI operations).
-  setbit(SS_DDR, SS_PIN);
+  set_bit(SS_DDR, SS_PIN);
 
   // Warning: if the SS pin ever becomes a LOW INPUT then SPI
   // automatically switches to Slave, so the data direction of

@@ -1,0 +1,1 @@
+glcdfont.d: ../glcdfont.c

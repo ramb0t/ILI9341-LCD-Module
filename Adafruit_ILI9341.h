@@ -24,6 +24,12 @@
 //#endif
 #include "Adafruit_GFX.h"
 #include <avr/pgmspace.h>
+#include <stdio.h>
+
+// Bitmask Macros
+#define set_bit(reg,bit) reg |= (1<<bit)
+#define clr_bit(reg,bit) reg &= ~(1<<bit)
+#define check_bit(reg,bit) (reg&(1<<bit))
 
 
 #define ILI9341_TFTWIDTH  240
@@ -115,7 +121,7 @@ class Adafruit_ILI9341 : public Adafruit_GFX {
            fillRect(int16_t x, int16_t y, int16_t w, int16_t h,
              uint16_t color),
            setRotation(uint8_t r),
-           invertDisplay(boolean i);
+           invertDisplay(bool i);
   uint16_t color565(uint8_t r, uint8_t g, uint8_t b);
 
   /* These are not for current use, 8-bit protocol only! */
@@ -138,7 +144,7 @@ class Adafruit_ILI9341 : public Adafruit_GFX {
 
 
 
-  boolean  hwSPI;
+  bool  hwSPI;
   uint8_t mySPCR;
   volatile uint8_t *mosiport, *clkport, *dcport, *rsport, *csport;
   int8_t  _cs, _dc, _rst, _mosi, _miso, _sclk;
